@@ -1,0 +1,134 @@
+<!--Alexandre Carle-->
+<!--Date: 1 février 2023-->
+<!--Dernier changement: 5 février 2023-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventes 2022</title>
+</head>
+<body>
+    <div style="text-align: center;">
+        <h2>Ventes 2022</h2>
+    </div>
+    <div id="graphContainer" style="margin: auto;"></div>
+    <script defer>
+        const svgns = "http://www.w3.org/2000/svg";
+        const MAXYCHARTVALUE = 710;
+        const SPACEBTWBARS = 60;
+        let viewPortMaxUnitX = 1700;
+        let viewPortMaxUnitY = 1700;
+        let mois = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        let ventes = [6500, 5550, 4200, 4525, 2500, 1500, 500, 1000, 1750, 2300, 3700, 3500];
+        let viewport = null;
+        let maxSales = findMaxRoundSales();
+        let maxHeight = Math.max(...ventes) / 10;
+        init_UI();
+        function init_UI() {
+            insertViewPort("graphContainer");
+            insertChartLines();
+            insertBarChart();
+            insertMonths();
+        }
+        //Fonction qui retourne la plus grande valeur du graphique
+        function findMaxRoundSales() {
+            let bestSale = Math.max(...ventes);
+            if(bestSale % 1000 != 0)
+                return (Math.round(bestSale / 1000) ) * 1000;
+            return bestSale;
+        }
+        function insertViewPort(containerId) {
+            viewport = document.createElementNS(svgns, "svg");
+            viewport.setAttribute("id", "viewport");
+            viewport.setAttribute("viewBox", "-350 0 " + viewPortMaxUnitX + " " + viewPortMaxUnitY);
+            document.getElementById(containerId).appendChild(viewport);
+        }
+        function insertChartLines() {            
+            //Nombre de lignes entre chaque 1000$
+            const NBLINESBTW1000 = 9;
+            const x1 = 150;
+            const x2 = 900;
+            let y = 10;
+
+            for(let i = maxSales; i > 0; i -= 1000) {
+                viewport.appendChild(text(100, y + 3, `$ ${maxSales}`, 0, 1, 'rgb(0,0,0)'));
+                viewport.appendChild(line(x1, y, x2, y, 'grey', 2));
+                for(let i = 0; i < NBLINESBTW1000 + 1; i++) {
+                    y += 10;
+                    viewport.appendChild(line(x1, y, x2, y, 'grey', 0.4));
+                }
+                maxSales = maxSales - 1000;
+            }
+            viewport.appendChild(line(x1, y, x2, y, 'grey', 2));
+            viewport.appendChild(text(125, y + 3, `$ ${maxSales}`, 0, 1, 'rgb(0,0,0)'));
+        }
+        function insertBarChart() {
+            //Constantes représentant la limite de ventes ($) selon le code de couleur (Red, Orange, Yellow)
+            const YLWSALESLIMIT = 4500;
+            const ORGSALESLIMIT = 3000;
+            const REDSALESLIMIT = 1000;
+
+            const WIDTH = 50;
+            let x = 170;
+            let y;
+            let height;
+            let color;
+
+            for(const sale of ventes) {
+                y = MAXYCHARTVALUE - maxHeight;
+                height = sale / 10;
+                y += maxHeight - height;
+
+                if(sale > YLWSALESLIMIT)
+                    color = 'green';
+                if(sale <= YLWSALESLIMIT)
+                    color = 'yellow';
+                if(sale <= ORGSALESLIMIT)
+                    color = 'orange';
+                if(sale <= REDSALESLIMIT)
+                    color = 'red';
+
+                viewport.appendChild(text(x, y - 5, '$ ' + sale));
+                viewport.appendChild(rect(x, y, WIDTH, height, color));
+
+                x += SPACEBTWBARS;
+            }
+        }
+        function insertMonths() {
+            const y = 730;
+            let x = 190;
+            for(const month of mois) {
+                viewport.appendChild(text(x, y, month, 45, 1.2));
+                x += SPACEBTWBARS;
+            }
+        }
+         function line(x1, y1, x2, y2, stroke = "black", strokeWidth = 1) {
+            let line = document.createElementNS(svgns, "line");
+            line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2);  line.setAttribute("y2", y2);
+            line.setAttribute("stroke", stroke);
+            line.setAttribute("stroke-width", strokeWidth);
+            return line;
+         }
+         function rect(x, y, width, height, fill = "white", stroke = "black", strokeWidth = 1) {
+            let rect = document.createElementNS(svgns, "rect");
+            rect.setAttribute("x", x); rect.setAttribute("y", y);
+            rect.setAttribute("width", width); rect.setAttribute("height", height);
+            rect.setAttribute("fill", fill); rect.setAttribute("stroke", stroke);
+            rect.setAttribute("stroke-width", strokeWidth);
+            return rect;
+         }
+         function text(x, y, content, angle = 0, size = "1", fill = "black") {
+            let text = document.createElementNS(svgns, "text");
+            text.setAttribute("x", x); text.setAttribute("y", y);
+            text.setAttribute("transform", `rotate(${angle},${x},${y})`);
+            text.setAttribute("font-size", size + "em");
+            text.setAttribute("fill", fill);
+            text.innerHTML = content;
+            return text;
+         }
+    </script>
+</body>
+</html>
